@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{get_ar_X_Y}
 \alias{get_ar_X_Y}
-\title{Build AR(p) design matrices for each node}
+\title{Build AR(p) design matrices}
 \usage{
 get_ar_X_Y(TS_by_node, lag_p)
 }
@@ -14,10 +14,26 @@ get_ar_X_Y(TS_by_node, lag_p)
 \value{
 A list with two elements:
 \describe{
-\item{X_list}{List of length N; each X is (n - p) x (p + 1) design matrix for node i.}
-\item{Y_list}{List of length N; each Y is length (n - p) response vector for node i.}
+\item{X_list}{List of length N; \code{X_list[[i]]} is (n - p) x p design matrix for node i.}
+\item{Y_list}{List of length N; \code{Y_list[[i]]} is length (n - p) response vector for node i.}
 }
 }
 \description{
-Build AR(p) design matrices for each node
+Build AR design matrices given time series data for each node.
+}
+\examples{
+N = 30 # nodes
+n = 100 # time points
+mu = 0
+sigma = 1
+phi = 0.8 # AR parameter
+x_init <- rnorm(N, mean = mu, sd = sigma / sqrt(1 - phi^2))
+TS_by_node <- matrix(0, nrow = N, ncol = n)
+TS_by_node[, 1] <- x_init
+eps <- matrix(rnorm(N * (n-1), 0, 1), nrow = N, ncol = n-1)
+for (t in 2:n)  TS_by_node[,t] <- mu + phi * (TS_by_node[,t-1] - mu) + eps[,t-1] # AR(1)
+ar_X_Y <- get_ar_X_Y(TS_by_node, lag_p=1)
+TS_by_node[1,1:10]
+ar_X_Y$X_list[[1]][1:6,] # lag_p
+ar_X_Y$Y_list[[1]][1:6]  # lag_p + 1
 }

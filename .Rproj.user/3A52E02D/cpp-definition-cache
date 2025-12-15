@@ -1,8 +1,49 @@
 [
     {
         "file": "/Users/mingqihan/Documents/GitHub/GraphClustAR/src/GraphClustAR.cpp",
-        "file_last_write": 1764888144.0,
-        "definitions": [],
+        "file_last_write": 1765829691.0,
+        "definitions": [
+            {
+                "usr": "c:@F@get_ar_X_Y#$@N@arma@S@Mat>#d#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "get_ar_X_Y(const arma::mat, const int)",
+                "file": "/Users/mingqihan/Documents/GitHub/GraphClustAR/src/GraphClustAR.cpp",
+                "line": 39,
+                "column": 12,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@get_graph_info#&1$@N@arma@S@Mat>#d#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "get_graph_info(const arma::mat &)",
+                "file": "/Users/mingqihan/Documents/GitHub/GraphClustAR/src/GraphClustAR.cpp",
+                "line": 102,
+                "column": 12,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@update_phi#&1$@N@Rcpp@S@Vector>#VI19#@N@Rcpp@ST>1#T@PreserveStorage#S0_#&$@N@arma@S@Mat>#d#S2_#S2_#&1S3_#&1$@N@arma@S@Col>#d#d#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "update_phi(const Rcpp::List &, const Rcpp::List &, arma::mat &, arma::mat &, arma::mat &, const arma::mat &, const arma::vec &, const double)",
+                "file": "/Users/mingqihan/Documents/GitHub/GraphClustAR/src/GraphClustAR.cpp",
+                "line": 161,
+                "column": 11,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@update_nu#&1$@N@arma@S@Mat>#d#S0_#S0_#d#d#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "update_nu(const arma::mat &, const arma::mat &, const arma::mat &, const double, const double)",
+                "file": "/Users/mingqihan/Documents/GitHub/GraphClustAR/src/GraphClustAR.cpp",
+                "line": 223,
+                "column": 11,
+                "hidden": false
+            }
+        ],
         "hidden": false
     }
 ]

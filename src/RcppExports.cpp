@@ -12,20 +12,67 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // get_ar_X_Y
-Rcpp::List get_ar_X_Y(arma::mat TS_by_node, int lag_p);
+Rcpp::List get_ar_X_Y(const arma::mat TS_by_node, const int lag_p);
 RcppExport SEXP _GraphClustAR_get_ar_X_Y(SEXP TS_by_nodeSEXP, SEXP lag_pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type TS_by_node(TS_by_nodeSEXP);
-    Rcpp::traits::input_parameter< int >::type lag_p(lag_pSEXP);
+    Rcpp::traits::input_parameter< const arma::mat >::type TS_by_node(TS_by_nodeSEXP);
+    Rcpp::traits::input_parameter< const int >::type lag_p(lag_pSEXP);
     rcpp_result_gen = Rcpp::wrap(get_ar_X_Y(TS_by_node, lag_p));
+    return rcpp_result_gen;
+END_RCPP
+}
+// get_graph_info
+Rcpp::List get_graph_info(const arma::mat& W);
+RcppExport SEXP _GraphClustAR_get_graph_info(SEXP WSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type W(WSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_graph_info(W));
+    return rcpp_result_gen;
+END_RCPP
+}
+// update_phi
+arma::mat update_phi(const Rcpp::List& X_list, const Rcpp::List& Y_list, arma::mat& phi, arma::mat& nu, arma::mat& theta, const arma::mat& edge_list, const arma::vec& node_degrees, const double gamma);
+RcppExport SEXP _GraphClustAR_update_phi(SEXP X_listSEXP, SEXP Y_listSEXP, SEXP phiSEXP, SEXP nuSEXP, SEXP thetaSEXP, SEXP edge_listSEXP, SEXP node_degreesSEXP, SEXP gammaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type X_list(X_listSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type Y_list(Y_listSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type phi(phiSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type nu(nuSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type edge_list(edge_listSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type node_degrees(node_degreesSEXP);
+    Rcpp::traits::input_parameter< const double >::type gamma(gammaSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_phi(X_list, Y_list, phi, nu, theta, edge_list, node_degrees, gamma));
+    return rcpp_result_gen;
+END_RCPP
+}
+// update_nu
+arma::mat update_nu(const arma::mat& phi, const arma::mat& theta, const arma::mat& edge_list, const double lambda, const double gamma);
+RcppExport SEXP _GraphClustAR_update_nu(SEXP phiSEXP, SEXP thetaSEXP, SEXP edge_listSEXP, SEXP lambdaSEXP, SEXP gammaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type phi(phiSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type edge_list(edge_listSEXP);
+    Rcpp::traits::input_parameter< const double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< const double >::type gamma(gammaSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_nu(phi, theta, edge_list, lambda, gamma));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
     {"_GraphClustAR_get_ar_X_Y", (DL_FUNC) &_GraphClustAR_get_ar_X_Y, 2},
+    {"_GraphClustAR_get_graph_info", (DL_FUNC) &_GraphClustAR_get_graph_info, 1},
+    {"_GraphClustAR_update_phi", (DL_FUNC) &_GraphClustAR_update_phi, 8},
+    {"_GraphClustAR_update_nu", (DL_FUNC) &_GraphClustAR_update_nu, 5},
     {NULL, NULL, 0}
 };
 

@@ -2,5 +2,8 @@
 
 export(ClustAR)
 export(get_ar_X_Y)
+export(get_graph_info)
+export(update_nu)
+export(update_phi)
 importFrom(Rcpp,sourceCpp)
 useDynLib(GraphClustAR, .registration = TRUE)
