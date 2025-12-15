@@ -26,8 +26,8 @@
 #' for (t in 2:n)  TS_by_node[,t] <- mu + phi * (TS_by_node[,t-1] - mu) + eps[,t-1] # AR(1)
 #' ar_X_Y <- get_ar_X_Y(TS_by_node, lag_p=1)
 #' TS_by_node[1,1:10]
-#' ar_X_Y$X_list[[1]][1:6,] # lag_p
-#' ar_X_Y$Y_list[[1]][1:6]  # lag_p + 1
+#' ar_X_Y$X_list[[1]][1:6,] # design matrix with lag_p
+#' ar_X_Y$Y_list[[1]][1:6]  # response at lag_p + 1
 #' @export
 get_ar_X_Y <- function(TS_by_node, lag_p) {
     .Call(`_GraphClustAR_get_ar_X_Y`, TS_by_node, lag_p)
@@ -41,7 +41,7 @@ get_ar_X_Y <- function(TS_by_node, lag_p) {
 #'
 #' @return A list with:
 #'   - edge_list: numeric matrix (i, j, w_ij)
-#'   - degree: integer vector of node degrees
+#'   - node_degree: integer vector of node degrees
 #'
 #' @examples
 #' # 5-node weighted, symmetric adjacency matrix
@@ -65,13 +65,13 @@ get_graph_info <- function(W) {
 #' @param nu Edge-wise auxiliary variables, E x d matrix.
 #' @param theta Edge-wise scaled dual variables, E x d matrix.
 #' @param edge_list edge list (E by 3)
-#' @param node_degrees Numeric vector of length N. This is |B(i)| for each i.
+#' @param node_degree Numeric vector of length N. This is |B(i)| for each i.
 #' @param gamma penalty for the augmentation term
 #'
 #' @return An N x d matrix with the updated phi.
 #' @export
-update_phi <- function(X_list, Y_list, phi, nu, theta, edge_list, node_degrees, gamma) {
-    .Call(`_GraphClustAR_update_phi`, X_list, Y_list, phi, nu, theta, edge_list, node_degrees, gamma)
+update_phi <- function(X_list, Y_list, phi, nu, theta, edge_list, node_degree, gamma) {
+    .Call(`_GraphClustAR_update_phi`, X_list, Y_list, phi, nu, theta, edge_list, node_degree, gamma)
 }
 
 #' Update nu
@@ -89,5 +89,40 @@ update_phi <- function(X_list, Y_list, phi, nu, theta, edge_list, node_degrees, 
 #' @export
 update_nu <- function(phi, theta, edge_list, lambda, gamma) {
     .Call(`_GraphClustAR_update_nu`, phi, theta, edge_list, lambda, gamma)
+}
+
+#' Update theta
+#'
+#' ADMM update for theta
+#' This function will not be export in the final version.
+#'
+#' @param phi N x p matrix of node parameters (one row per node).
+#' @param nu E x d matrix of auxiliary variables.
+#' @param theta E x p matrix of scaled dual variables.
+#' @param edge_list E x 3 matrix. Each row e is (i, j, w_ij)
+#'
+#' @return Updated nu matrix of size E x p.
+#' @export
+update_theta <- function(phi, nu, theta, edge_list) {
+    .Call(`_GraphClustAR_update_theta`, phi, nu, theta, edge_list)
+}
+
+#' ADMM for GraphClustAR
+#'
+#' ADMM for GraphClustAR (cpp version)
+#' This function will not be export in the final version.
+#'
+#' @param X_list List of length N; each \code{X_list[[i]]} is (n-p x p) design matrix X_i.
+#' @param Y_list List of length N; each \code{Y_list[[i]]} is length n-p response vector Y_i.
+#' @param edge_list edge list (E by 3)
+#' @param node_degree Numeric vector of length N. This is |B(i)| for each i.
+#' @param lambda GFL penalty parameter.
+#' @param gamma penalty for the augmentation term
+#' @param lag_p Integer lag p for the AR(p) model.
+#'
+#' @return An N x d matrix with the updated phi.
+#' @export
+GraphClustAR_cpp <- function(X_list, Y_list, edge_list, node_degree, lambda, gamma, lag_p) {
+    .Call(`_GraphClustAR_GraphClustAR_cpp`, X_list, Y_list, edge_list, node_degree, lambda, gamma, lag_p)
 }
 

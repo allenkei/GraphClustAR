@@ -13,7 +13,7 @@ get_graph_info(W)
 A list with:
 \itemize{
 \item edge_list: numeric matrix (i, j, w_ij)
-\item degree: integer vector of node degrees
+\item node_degree: integer vector of node degrees
 }
 }
 \description{

@@ -35,8 +35,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // update_phi
-arma::mat update_phi(const Rcpp::List& X_list, const Rcpp::List& Y_list, arma::mat& phi, arma::mat& nu, arma::mat& theta, const arma::mat& edge_list, const arma::vec& node_degrees, const double gamma);
-RcppExport SEXP _GraphClustAR_update_phi(SEXP X_listSEXP, SEXP Y_listSEXP, SEXP phiSEXP, SEXP nuSEXP, SEXP thetaSEXP, SEXP edge_listSEXP, SEXP node_degreesSEXP, SEXP gammaSEXP) {
+arma::mat update_phi(const Rcpp::List& X_list, const Rcpp::List& Y_list, arma::mat& phi, arma::mat& nu, arma::mat& theta, const arma::mat& edge_list, const arma::vec& node_degree, const double gamma);
+RcppExport SEXP _GraphClustAR_update_phi(SEXP X_listSEXP, SEXP Y_listSEXP, SEXP phiSEXP, SEXP nuSEXP, SEXP thetaSEXP, SEXP edge_listSEXP, SEXP node_degreeSEXP, SEXP gammaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -46,9 +46,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat& >::type nu(nuSEXP);
     Rcpp::traits::input_parameter< arma::mat& >::type theta(thetaSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type edge_list(edge_listSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type node_degrees(node_degreesSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type node_degree(node_degreeSEXP);
     Rcpp::traits::input_parameter< const double >::type gamma(gammaSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_phi(X_list, Y_list, phi, nu, theta, edge_list, node_degrees, gamma));
+    rcpp_result_gen = Rcpp::wrap(update_phi(X_list, Y_list, phi, nu, theta, edge_list, node_degree, gamma));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -67,12 +67,45 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// update_theta
+arma::mat update_theta(const arma::mat& phi, const arma::mat& nu, const arma::mat& theta, const arma::mat& edge_list);
+RcppExport SEXP _GraphClustAR_update_theta(SEXP phiSEXP, SEXP nuSEXP, SEXP thetaSEXP, SEXP edge_listSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type phi(phiSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type nu(nuSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type edge_list(edge_listSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_theta(phi, nu, theta, edge_list));
+    return rcpp_result_gen;
+END_RCPP
+}
+// GraphClustAR_cpp
+arma::mat GraphClustAR_cpp(const Rcpp::List& X_list, const Rcpp::List& Y_list, const arma::mat& edge_list, const arma::vec& node_degree, const double lambda, const double gamma, const int lag_p);
+RcppExport SEXP _GraphClustAR_GraphClustAR_cpp(SEXP X_listSEXP, SEXP Y_listSEXP, SEXP edge_listSEXP, SEXP node_degreeSEXP, SEXP lambdaSEXP, SEXP gammaSEXP, SEXP lag_pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type X_list(X_listSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type Y_list(Y_listSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type edge_list(edge_listSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type node_degree(node_degreeSEXP);
+    Rcpp::traits::input_parameter< const double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< const double >::type gamma(gammaSEXP);
+    Rcpp::traits::input_parameter< const int >::type lag_p(lag_pSEXP);
+    rcpp_result_gen = Rcpp::wrap(GraphClustAR_cpp(X_list, Y_list, edge_list, node_degree, lambda, gamma, lag_p));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_GraphClustAR_get_ar_X_Y", (DL_FUNC) &_GraphClustAR_get_ar_X_Y, 2},
     {"_GraphClustAR_get_graph_info", (DL_FUNC) &_GraphClustAR_get_graph_info, 1},
     {"_GraphClustAR_update_phi", (DL_FUNC) &_GraphClustAR_update_phi, 8},
     {"_GraphClustAR_update_nu", (DL_FUNC) &_GraphClustAR_update_nu, 5},
+    {"_GraphClustAR_update_theta", (DL_FUNC) &_GraphClustAR_update_theta, 4},
+    {"_GraphClustAR_GraphClustAR_cpp", (DL_FUNC) &_GraphClustAR_GraphClustAR_cpp, 7},
     {NULL, NULL, 0}
 };
 
