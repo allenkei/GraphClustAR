@@ -24,10 +24,10 @@
 #' TS_by_node[, 1] <- x_init
 #' eps <- matrix(rnorm(N * (n-1), 0, 1), nrow = N, ncol = n-1)
 #' for (t in 2:n)  TS_by_node[,t] <- mu + phi * (TS_by_node[,t-1] - mu) + eps[,t-1] # AR(1)
-#' ar_X_Y <- get_ar_X_Y(TS_by_node, lag_p=1)
-#' TS_by_node[1,1:10]
-#' ar_X_Y$X_list[[1]][1:6,] # design matrix with lag_p
-#' ar_X_Y$Y_list[[1]][1:6]  # response at lag_p + 1
+#' ar_X_Y <- get_ar_X_Y(TS_by_node, lag_p=4)
+#' TS_by_node[1,1:10]         # first 10 time points for node 1
+#' ar_X_Y$X_list[[1]][1:6,]   # design matrix with lag_p
+#' ar_X_Y$Y_list[[1]][1:6]    # response at lag_p + 1
 #' @export
 get_ar_X_Y <- function(TS_by_node, lag_p) {
     .Call(`_GraphClustAR_get_ar_X_Y`, TS_by_node, lag_p)
@@ -37,7 +37,7 @@ get_ar_X_Y <- function(TS_by_node, lag_p) {
 #'
 #' Convert weighted adjacency matrix to (1) edge list and (2) node degrees
 #'
-#' @param W Numeric matrix (N x N) weighted adjacency matrix. Must be symmetric.
+#' @param adj_w Numeric matrix (N x N) weighted adjacency matrix. Must be symmetric.
 #'
 #' @return A list with:
 #'   - edge_list: numeric matrix (i, j, w_ij)
@@ -45,13 +45,13 @@ get_ar_X_Y <- function(TS_by_node, lag_p) {
 #'
 #' @examples
 #' # 5-node weighted, symmetric adjacency matrix
-#' W <- matrix(0, nrow = 5, ncol = 5)
-#' W[1, 2] <- 1.5; W[1, 4] <- 2.0; W[2, 3] <- 0.8; W[4, 5] <- 3.2
-#' W <- W + t(W)
-#' get_graph_info(W)
+#' adj_w <- matrix(0, nrow = 5, ncol = 5)
+#' adj_w[1, 2] <- 1.5; adj_w[1, 4] <- 2.0; adj_w[2, 3] <- 0.8; adj_w[4, 5] <- 3.2
+#' adj_w <- adj_w + t(adj_w)
+#' get_graph_info(adj_w)
 #' @export
-get_graph_info <- function(W) {
-    .Call(`_GraphClustAR_get_graph_info`, W)
+get_graph_info <- function(adj_w) {
+    .Call(`_GraphClustAR_get_graph_info`, adj_w)
 }
 
 #' Update phi
@@ -79,16 +79,17 @@ update_phi <- function(X_list, Y_list, phi, nu, theta, edge_list, node_degree, g
 #' ADMM update for nu using group soft-thresholding.
 #' This function will not be export in the final version.
 #'
-#' @param phi N x p matrix of node parameters (one row per node).
-#' @param theta E x p matrix of scaled dual variables.
-#' @param edge_list E x 3 matrix. Each row e is (i, j, w_ij)
+#' @param phi N by p matrix of node parameters (one row per node).
+#' @param theta E by p matrix of scaled dual variables.
+#' @param edge_list E by 3 matrix. Each row e is (i, j, w_ij)
 #' @param lambda GFL penalty parameter.
 #' @param gamma penalty parameter for augmentation term.
+#' @param nu_iter nu iteration
 #'
-#' @return Updated nu matrix of size E x p.
+#' @return Updated nu matrix of size E by p.
 #' @export
-update_nu <- function(phi, theta, edge_list, lambda, gamma) {
-    .Call(`_GraphClustAR_update_nu`, phi, theta, edge_list, lambda, gamma)
+update_nu <- function(phi, theta, edge_list, lambda, gamma, nu_iter) {
+    .Call(`_GraphClustAR_update_nu`, phi, theta, edge_list, lambda, gamma, nu_iter)
 }
 
 #' Update theta
@@ -96,12 +97,12 @@ update_nu <- function(phi, theta, edge_list, lambda, gamma) {
 #' ADMM update for theta
 #' This function will not be export in the final version.
 #'
-#' @param phi N x p matrix of node parameters (one row per node).
-#' @param nu E x d matrix of auxiliary variables.
-#' @param theta E x p matrix of scaled dual variables.
-#' @param edge_list E x 3 matrix. Each row e is (i, j, w_ij)
+#' @param phi N by p matrix of node parameters (one row per node).
+#' @param nu E by d matrix of auxiliary variables.
+#' @param theta E by p matrix of scaled dual variables.
+#' @param edge_list E by 3 matrix. Each row e is (i, j, w_ij)
 #'
-#' @return Updated nu matrix of size E x p.
+#' @return Updated nu matrix of size E by p.
 #' @export
 update_theta <- function(phi, nu, theta, edge_list) {
     .Call(`_GraphClustAR_update_theta`, phi, nu, theta, edge_list)
@@ -116,13 +117,16 @@ update_theta <- function(phi, nu, theta, edge_list) {
 #' @param Y_list List of length N; each \code{Y_list[[i]]} is length n-p response vector Y_i.
 #' @param edge_list edge list (E by 3)
 #' @param node_degree Numeric vector of length N. This is |B(i)| for each i.
+#' @param ADMM_iter ADMM iteration
+#' @param nu_iter nu iteration
 #' @param lambda GFL penalty parameter.
-#' @param gamma penalty for the augmentation term
+#' @param gamma penalty for the augmentation term.
 #' @param lag_p Integer lag p for the AR(p) model.
+#' @param verbose If TRUE, print info during learning.
 #'
 #' @return An N x d matrix with the updated phi.
 #' @export
-GraphClustAR_cpp <- function(X_list, Y_list, edge_list, node_degree, lambda, gamma, lag_p) {
-    .Call(`_GraphClustAR_GraphClustAR_cpp`, X_list, Y_list, edge_list, node_degree, lambda, gamma, lag_p)
+GraphClustAR_cpp <- function(X_list, Y_list, edge_list, node_degree, ADMM_iter, nu_iter, lambda, gamma, lag_p, verbose) {
+    .Call(`_GraphClustAR_GraphClustAR_cpp`, X_list, Y_list, edge_list, node_degree, ADMM_iter, nu_iter, lambda, gamma, lag_p, verbose)
 }
 

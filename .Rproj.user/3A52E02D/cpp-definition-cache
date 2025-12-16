@@ -1,7 +1,7 @@
 [
     {
         "file": "/Users/mingqihan/Documents/GitHub/GraphClustAR/src/GraphClustAR.cpp",
-        "file_last_write": 1765832923.0,
+        "file_last_write": 1765845631.0,
         "definitions": [
             {
                 "usr": "c:@F@get_ar_X_Y#$@N@arma@S@Mat>#d#I#",
@@ -19,7 +19,7 @@
                 "parent_name": "",
                 "name": "get_graph_info(const arma::mat &)",
                 "file": "/Users/mingqihan/Documents/GitHub/GraphClustAR/src/GraphClustAR.cpp",
-                "line": 102,
+                "line": 99,
                 "column": 12,
                 "hidden": false
             },
@@ -29,17 +29,17 @@
                 "parent_name": "",
                 "name": "update_phi(const Rcpp::List &, const Rcpp::List &, arma::mat &, arma::mat &, arma::mat &, const arma::mat &, const arma::vec &, const double)",
                 "file": "/Users/mingqihan/Documents/GitHub/GraphClustAR/src/GraphClustAR.cpp",
-                "line": 161,
+                "line": 158,
                 "column": 11,
                 "hidden": false
             },
             {
-                "usr": "c:@F@update_nu#&1$@N@arma@S@Mat>#d#S0_#S0_#d#d#",
+                "usr": "c:@F@update_nu#&1$@N@arma@S@Mat>#d#S0_#S0_#d#d#I#",
                 "kind": 6,
                 "parent_name": "",
-                "name": "update_nu(const arma::mat &, const arma::mat &, const arma::mat &, const double, const double)",
+                "name": "update_nu(const arma::mat &, const arma::mat &, const arma::mat &, const double, const double, const int)",
                 "file": "/Users/mingqihan/Documents/GitHub/GraphClustAR/src/GraphClustAR.cpp",
-                "line": 223,
+                "line": 221,
                 "column": 11,
                 "hidden": false
             },
@@ -49,18 +49,18 @@
                 "parent_name": "",
                 "name": "update_theta(const arma::mat &, const arma::mat &, const arma::mat &, const arma::mat &)",
                 "file": "/Users/mingqihan/Documents/GitHub/GraphClustAR/src/GraphClustAR.cpp",
-                "line": 271,
+                "line": 273,
                 "column": 11,
                 "hidden": false
             },
             {
-                "usr": "c:@F@GraphClustAR_cpp#&1$@N@Rcpp@S@Vector>#VI19#@N@Rcpp@ST>1#T@PreserveStorage#S0_#&1$@N@arma@S@Mat>#d#&1$@N@arma@S@Col>#d#d#d#I#",
+                "usr": "c:@F@GraphClustAR_cpp#&1$@N@Rcpp@S@Vector>#VI19#@N@Rcpp@ST>1#T@PreserveStorage#S0_#&1$@N@arma@S@Mat>#d#&1$@N@arma@S@Col>#d#I#I#d#d#I#b#",
                 "kind": 6,
                 "parent_name": "",
-                "name": "GraphClustAR_cpp(const Rcpp::List &, const Rcpp::List &, const arma::mat &, const arma::vec &, const double, const double, const int)",
+                "name": "GraphClustAR_cpp(const Rcpp::List &, const Rcpp::List &, const arma::mat &, const arma::vec &, const int, const int, const double, const double, const int, bool)",
                 "file": "/Users/mingqihan/Documents/GitHub/GraphClustAR/src/GraphClustAR.cpp",
-                "line": 311,
-                "column": 11,
+                "line": 313,
+                "column": 12,
                 "hidden": false
             }
         ],

@@ -7,16 +7,16 @@
 update_theta(phi, nu, theta, edge_list)
 }
 \arguments{
-\item{phi}{N x p matrix of node parameters (one row per node).}
+\item{phi}{N by p matrix of node parameters (one row per node).}
 
-\item{nu}{E x d matrix of auxiliary variables.}
+\item{nu}{E by d matrix of auxiliary variables.}
 
-\item{theta}{E x p matrix of scaled dual variables.}
+\item{theta}{E by p matrix of scaled dual variables.}
 
-\item{edge_list}{E x 3 matrix. Each row e is (i, j, w_ij)}
+\item{edge_list}{E by 3 matrix. Each row e is (i, j, w_ij)}
 }
 \value{
-Updated nu matrix of size E x p.
+Updated nu matrix of size E by p.
 }
 \description{
 ADMM update for theta

@@ -4,7 +4,18 @@
 \alias{GraphClustAR_cpp}
 \title{ADMM for GraphClustAR}
 \usage{
-GraphClustAR_cpp(X_list, Y_list, edge_list, node_degree, lambda, gamma, lag_p)
+GraphClustAR_cpp(
+  X_list,
+  Y_list,
+  edge_list,
+  node_degree,
+  ADMM_iter,
+  nu_iter,
+  lambda,
+  gamma,
+  lag_p,
+  verbose
+)
 }
 \arguments{
 \item{X_list}{List of length N; each \code{X_list[[i]]} is (n-p x p) design matrix X_i.}
@@ -15,11 +26,17 @@ GraphClustAR_cpp(X_list, Y_list, edge_list, node_degree, lambda, gamma, lag_p)
 
 \item{node_degree}{Numeric vector of length N. This is |B(i)| for each i.}
 
+\item{ADMM_iter}{ADMM iteration}
+
+\item{nu_iter}{nu iteration}
+
 \item{lambda}{GFL penalty parameter.}
 
-\item{gamma}{penalty for the augmentation term}
+\item{gamma}{penalty for the augmentation term.}
 
 \item{lag_p}{Integer lag p for the AR(p) model.}
+
+\item{verbose}{If TRUE, print info during learning.}
 }
 \value{
 An N x d matrix with the updated phi.

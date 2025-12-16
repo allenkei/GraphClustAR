@@ -4,10 +4,10 @@
 \alias{get_graph_info}
 \title{Get graph information}
 \usage{
-get_graph_info(W)
+get_graph_info(adj_w)
 }
 \arguments{
-\item{W}{Numeric matrix (N x N) weighted adjacency matrix. Must be symmetric.}
+\item{adj_w}{Numeric matrix (N x N) weighted adjacency matrix. Must be symmetric.}
 }
 \value{
 A list with:
@@ -21,8 +21,8 @@ Convert weighted adjacency matrix to (1) edge list and (2) node degrees
 }
 \examples{
 # 5-node weighted, symmetric adjacency matrix
-W <- matrix(0, nrow = 5, ncol = 5)
-W[1, 2] <- 1.5; W[1, 4] <- 2.0; W[2, 3] <- 0.8; W[4, 5] <- 3.2
-W <- W + t(W)
-get_graph_info(W)
+adj_w <- matrix(0, nrow = 5, ncol = 5)
+adj_w[1, 2] <- 1.5; adj_w[1, 4] <- 2.0; adj_w[2, 3] <- 0.8; adj_w[4, 5] <- 3.2
+adj_w <- adj_w + t(adj_w)
+get_graph_info(adj_w)
 }

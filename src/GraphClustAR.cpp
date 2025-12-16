@@ -30,10 +30,10 @@ using namespace std;
 //' TS_by_node[, 1] <- x_init
 //' eps <- matrix(rnorm(N * (n-1), 0, 1), nrow = N, ncol = n-1)
 //' for (t in 2:n)  TS_by_node[,t] <- mu + phi * (TS_by_node[,t-1] - mu) + eps[,t-1] # AR(1)
-//' ar_X_Y <- get_ar_X_Y(TS_by_node, lag_p=1)
-//' TS_by_node[1,1:10]
-//' ar_X_Y$X_list[[1]][1:6,] # design matrix with lag_p
-//' ar_X_Y$Y_list[[1]][1:6]  # response at lag_p + 1
+//' ar_X_Y <- get_ar_X_Y(TS_by_node, lag_p=4)
+//' TS_by_node[1,1:10]         # first 10 time points for node 1
+//' ar_X_Y$X_list[[1]][1:6,]   # design matrix with lag_p
+//' ar_X_Y$Y_list[[1]][1:6]    # response at lag_p + 1
 //' @export
 // [[Rcpp::export]]
 Rcpp::List get_ar_X_Y(const arma::mat TS_by_node, const int lag_p) {
@@ -45,14 +45,13 @@ Rcpp::List get_ar_X_Y(const arma::mat TS_by_node, const int lag_p) {
   int T_eff = n - lag_p;  // n - p
   //int d = lag_p + 1;    // NOT USED
 
-  Rcpp::List X_list(N);
-  Rcpp::List Y_list(N);
+  Rcpp::List X_list(N); Rcpp::List Y_list(N);
 
   for (int i = 0; i < N; ++i) {
    arma::rowvec yi = TS_by_node.row(i); // time series for node i
 
    arma::mat Xi(T_eff, lag_p); // (n - p) x p
-   arma::vec Yi(T_eff);    // (n - p)
+   arma::vec Yi(T_eff);        // (n - p)
 
    // in R: t = p+1,...,n
    // in C++: u = lag_p,...,n-1 (0-based)
@@ -69,13 +68,11 @@ Rcpp::List get_ar_X_Y(const arma::mat TS_by_node, const int lag_p) {
      }
    }
 
-   X_list[i] = Xi;
-   Y_list[i] = Yi;
+   X_list[i] = Xi; Y_list[i] = Yi;
   }
 
   return Rcpp::List::create(
-   Rcpp::Named("X_list") = X_list,
-   Rcpp::Named("Y_list") = Y_list
+   Rcpp::Named("X_list") = X_list, Rcpp::Named("Y_list") = Y_list
   );
 }
 
@@ -85,7 +82,7 @@ Rcpp::List get_ar_X_Y(const arma::mat TS_by_node, const int lag_p) {
 //'
 //' Convert weighted adjacency matrix to (1) edge list and (2) node degrees
 //'
-//' @param W Numeric matrix (N x N) weighted adjacency matrix. Must be symmetric.
+//' @param adj_w Numeric matrix (N x N) weighted adjacency matrix. Must be symmetric.
 //'
 //' @return A list with:
 //'   - edge_list: numeric matrix (i, j, w_ij)
@@ -93,23 +90,23 @@ Rcpp::List get_ar_X_Y(const arma::mat TS_by_node, const int lag_p) {
 //'
 //' @examples
 //' # 5-node weighted, symmetric adjacency matrix
-//' W <- matrix(0, nrow = 5, ncol = 5)
-//' W[1, 2] <- 1.5; W[1, 4] <- 2.0; W[2, 3] <- 0.8; W[4, 5] <- 3.2
-//' W <- W + t(W)
-//' get_graph_info(W)
+//' adj_w <- matrix(0, nrow = 5, ncol = 5)
+//' adj_w[1, 2] <- 1.5; adj_w[1, 4] <- 2.0; adj_w[2, 3] <- 0.8; adj_w[4, 5] <- 3.2
+//' adj_w <- adj_w + t(adj_w)
+//' get_graph_info(adj_w)
 //' @export
 // [[Rcpp::export]]
-Rcpp::List get_graph_info(const arma::mat &W) {
+Rcpp::List get_graph_info(const arma::mat &adj_w) {
 
 
-  int N = W.n_rows;
+  int N = adj_w.n_rows;
   int E = 0;
 
   arma::vec node_degree(N, arma::fill::zeros);
 
   for (int i = 0; i < N; ++i) {
     for (int j = i + 1; j < N; ++j) {
-      if (W(i, j) > 0.0) {
+      if (adj_w(i, j) > 0.0) {
         node_degree(i)++;
         node_degree(j)++;
         E++;
@@ -123,7 +120,7 @@ Rcpp::List get_graph_info(const arma::mat &W) {
 
   for (int i = 0; i < N; ++i) {
     for (int j = i + 1; j < N; ++j) {
-      double wij = W(i, j);
+      double wij = adj_w(i, j);
       if (wij > 0.0) {
         edge_list(idx, 0) = i;   // 0-based index
         edge_list(idx, 1) = j;   // 0-based index
@@ -211,39 +208,44 @@ arma::mat update_phi(const Rcpp::List &X_list, const Rcpp::List &Y_list,
 //' ADMM update for nu using group soft-thresholding.
 //' This function will not be export in the final version.
 //'
-//' @param phi N x p matrix of node parameters (one row per node).
-//' @param theta E x p matrix of scaled dual variables.
-//' @param edge_list E x 3 matrix. Each row e is (i, j, w_ij)
+//' @param phi N by p matrix of node parameters (one row per node).
+//' @param theta E by p matrix of scaled dual variables.
+//' @param edge_list E by 3 matrix. Each row e is (i, j, w_ij)
 //' @param lambda GFL penalty parameter.
 //' @param gamma penalty parameter for augmentation term.
+//' @param nu_iter nu iteration
 //'
-//' @return Updated nu matrix of size E x p.
+//' @return Updated nu matrix of size E by p.
 //' @export
 // [[Rcpp::export]]
-arma::mat update_nu(const arma::mat &phi,          // N x p
-                    const arma::mat &theta,        // E x p
-                    const arma::mat &edge_list,    // E x 3: (i, j, w_ij)
-                    const double lambda, const double gamma) {
+arma::mat update_nu(const arma::mat &phi,          // N by p
+                    const arma::mat &theta,        // E by p
+                    const arma::mat &edge_list,    // E by 3: (i, j, w_ij)
+                    const double lambda, const double gamma, const int nu_iter) {
 
   int E = edge_list.n_rows;
   int p = phi.n_cols;
   arma::mat nu(E, p, arma::fill::zeros);
 
-  for (int e = 0; e < E; ++e) {
+  for(int iter = 0; iter < nu_iter; ++iter){
 
-    int i = static_cast<int>(edge_list(e, 0));
-    int j = static_cast<int>(edge_list(e, 1));
-    double w_ij = edge_list(e, 2);
+    for (int e = 0; e < E; ++e) {
 
-    arma::rowvec s_ij = phi.row(i) - phi.row(j) + theta.row(e);
-    double s_norm = std::sqrt(arma::dot(s_ij, s_ij));
+      int i = static_cast<int>(edge_list(e, 0));
+      int j = static_cast<int>(edge_list(e, 1));
+      double w_ij = edge_list(e, 2);
 
-    double condition = 1.0 - (lambda * w_ij) / (gamma * s_norm);
-    if (condition <= 0.0) {
-      nu.row(e).zeros();
-    } else {
-      nu.row(e) = condition * s_ij;
+      arma::rowvec s_ij = phi.row(i) - phi.row(j) + theta.row(e);
+      double s_norm = std::sqrt(arma::dot(s_ij, s_ij));
+      double condition = 1.0 - (lambda * w_ij) / (gamma * s_norm);
+
+      if (condition <= 0.0) {
+        nu.row(e).zeros();
+      } else {
+        nu.row(e) = condition * s_ij;
+      }
     }
+
   }
 
   return nu;
@@ -260,17 +262,17 @@ arma::mat update_nu(const arma::mat &phi,          // N x p
 //' ADMM update for theta
 //' This function will not be export in the final version.
 //'
-//' @param phi N x p matrix of node parameters (one row per node).
-//' @param nu E x d matrix of auxiliary variables.
-//' @param theta E x p matrix of scaled dual variables.
-//' @param edge_list E x 3 matrix. Each row e is (i, j, w_ij)
+//' @param phi N by p matrix of node parameters (one row per node).
+//' @param nu E by d matrix of auxiliary variables.
+//' @param theta E by p matrix of scaled dual variables.
+//' @param edge_list E by 3 matrix. Each row e is (i, j, w_ij)
 //'
-//' @return Updated nu matrix of size E x p.
+//' @return Updated nu matrix of size E by p.
 //' @export
 // [[Rcpp::export]]
-arma::mat update_theta(const arma::mat &phi,          // N x p
-                       const arma::mat &nu,           // E x p
-                       const arma::mat &theta,        // E x p
+arma::mat update_theta(const arma::mat &phi,          // N by p
+                       const arma::mat &nu,           // E by p
+                       const arma::mat &theta,        // E by p
                        const arma::mat &edge_list) {
 
   int E = edge_list.n_rows;
@@ -278,12 +280,9 @@ arma::mat update_theta(const arma::mat &phi,          // N x p
   arma::mat theta_new(E, p, arma::fill::zeros);
 
   for (int e = 0; e < E; ++e) {
-
    int i = static_cast<int>(edge_list(e, 0));
    int j = static_cast<int>(edge_list(e, 1));
-
    theta_new.row(e) = phi.row(i) - phi.row(j) - nu.row(e) + theta.row(e); // use theta to update theta_new
-
   }
 
   return theta_new;
@@ -301,30 +300,53 @@ arma::mat update_theta(const arma::mat &phi,          // N x p
 //' @param Y_list List of length N; each \code{Y_list[[i]]} is length n-p response vector Y_i.
 //' @param edge_list edge list (E by 3)
 //' @param node_degree Numeric vector of length N. This is |B(i)| for each i.
+//' @param ADMM_iter ADMM iteration
+//' @param nu_iter nu iteration
 //' @param lambda GFL penalty parameter.
-//' @param gamma penalty for the augmentation term
+//' @param gamma penalty for the augmentation term.
 //' @param lag_p Integer lag p for the AR(p) model.
+//' @param verbose If TRUE, print info during learning.
 //'
 //' @return An N x d matrix with the updated phi.
 //' @export
 // [[Rcpp::export]]
-arma::mat GraphClustAR_cpp(const Rcpp::List &X_list, const Rcpp::List &Y_list,
-                           const arma::mat  &edge_list,    // E by 3
+Rcpp::List GraphClustAR_cpp(const Rcpp::List &X_list, const Rcpp::List &Y_list,
+                           const arma::mat  &edge_list,   // E by 3
                            const arma::vec  &node_degree, // N
-                           const double lambda, const double gamma, const int lag_p) {
+                           const int ADMM_iter, const int nu_iter,
+                           const double lambda, const double gamma, const int lag_p, bool verbose) {
 
 
   int E = edge_list.n_rows;
   int N = node_degree.size();
   int p = lag_p;
 
-  // initialize parameters
+  //arma::mat phi, arma::mat nu, arma::mat theta,
   arma::mat phi(N, p, arma::fill::zeros);
   arma::mat nu(E, p, arma::fill::zeros);
   arma::mat theta(E, p, arma::fill::zeros);
+  arma::mat nu_old;
 
+  for(int iter = 0; iter < ADMM_iter; ++iter){
+    if(verbose){Rcout << "ADMM iter = " << iter+1 << "\n";}
 
+    phi = update_phi(X_list, Y_list, phi, nu, theta, edge_list, node_degree, gamma);
+    if(verbose){Rcout << "    phi updated" << "\n";}
 
+    nu_old = nu;
+    nu = update_nu(phi, theta, edge_list, lambda, gamma, nu_iter);
+    if(verbose){Rcout << "    nu updated" << "\n";}
+
+    theta = update_theta(phi, nu, theta, edge_list);
+    if(verbose){Rcout << "    theta updated" << "\n";}
+
+  }
+
+  return Rcpp::List::create(
+    Rcpp::Named("phi") = phi,
+    Rcpp::Named("nu") = nu,
+    Rcpp::Named("theta") = theta
+  );
 
 }
 

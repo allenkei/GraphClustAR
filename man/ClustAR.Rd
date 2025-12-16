@@ -4,12 +4,24 @@
 \alias{ClustAR}
 \title{Clustering nodes.}
 \usage{
-ClustAR(TS_by_node, lag_p)
+ClustAR(TS_by_node, lag_p, adj_w, ADMM_iter, nu_iter, lambda, gamma, verbose)
 }
 \arguments{
 \item{TS_by_node}{Numeric matrix of size N x n. Each row is the time series for a node.}
 
 \item{lag_p}{Integer lag p for the AR(p) model.}
+
+\item{adj_w}{Adjacency matrix with non-negative weights}
+
+\item{ADMM_iter}{ADMM iteration}
+
+\item{nu_iter}{nu iteration}
+
+\item{lambda}{GFL penalty}
+
+\item{gamma}{penalty for the augmentation term}
+
+\item{verbose}{If TRUE, print info during parameter learning}
 }
 \value{
 A list

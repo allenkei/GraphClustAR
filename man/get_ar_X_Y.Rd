@@ -32,8 +32,8 @@ TS_by_node <- matrix(0, nrow = N, ncol = n)
 TS_by_node[, 1] <- x_init
 eps <- matrix(rnorm(N * (n-1), 0, 1), nrow = N, ncol = n-1)
 for (t in 2:n)  TS_by_node[,t] <- mu + phi * (TS_by_node[,t-1] - mu) + eps[,t-1] # AR(1)
-ar_X_Y <- get_ar_X_Y(TS_by_node, lag_p=1)
-TS_by_node[1,1:10]
-ar_X_Y$X_list[[1]][1:6,] # design matrix with lag_p
-ar_X_Y$Y_list[[1]][1:6]  # response at lag_p + 1
+ar_X_Y <- get_ar_X_Y(TS_by_node, lag_p=4)
+TS_by_node[1,1:10]         # first 10 time points for node 1
+ar_X_Y$X_list[[1]][1:6,]   # design matrix with lag_p
+ar_X_Y$Y_list[[1]][1:6]    # response at lag_p + 1
 }
