@@ -7,7 +7,7 @@
 update_phi(X_list, Y_list, phi, nu, theta, edge_list, node_degree, gamma)
 }
 \arguments{
-\item{X_list}{List of length N; each \code{X_list[[i]]} is (n-p x p) design matrix X_i.}
+\item{X_list}{List of length N; each \code{X_list[[i]]} is (n-p x d) design matrix X_i.}
 
 \item{Y_list}{List of length N; each \code{Y_list[[i]]} is length n-p response vector Y_i.}
 

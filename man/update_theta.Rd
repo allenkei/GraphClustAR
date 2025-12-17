@@ -7,11 +7,11 @@
 update_theta(phi, nu, theta, edge_list)
 }
 \arguments{
-\item{phi}{N by p matrix of node parameters (one row per node).}
+\item{phi}{N by d matrix of node parameters.}
 
 \item{nu}{E by d matrix of auxiliary variables.}
 
-\item{theta}{E by p matrix of scaled dual variables.}
+\item{theta}{E by d matrix of scaled dual variables.}
 
 \item{edge_list}{E by 3 matrix. Each row e is (i, j, w_ij)}
 }

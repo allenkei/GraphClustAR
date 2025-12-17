@@ -14,7 +14,6 @@ NULL
 #' @param lag_p Integer lag p for the AR(p) model.
 #' @param adj_w Adjacency matrix with non-negative weights
 #' @param ADMM_iter ADMM iteration
-#' @param nu_iter nu iteration
 #' @param lambda GFL penalty
 #' @param gamma penalty for the augmentation term
 #' @param verbose If TRUE, print info during parameter learning
@@ -28,21 +27,13 @@ NULL
 #' mu = 0
 #' sigma = 1
 #' phi = 0.8 # AR parameter
-#' x_init <- rnorm(N, mean = mu, sd = sigma / sqrt(1 - phi^2))
-#' TS_by_node <- matrix(0, nrow = N, ncol = n)
-#' TS_by_node[, 1] <- x_init
-#' eps <- matrix(rnorm(N * (n-1), 0, 1), nrow = N, ncol = n-1)
-#' for (t in 2:n)  TS_by_node[,t] <- mu + phi * (TS_by_node[,t-1] - mu) + eps[,t-1] # AR(1)
-#' # clust_result <- ClustAR(TS_by_node, lag_p) # AR(p)
-#' # compare TS_by_node[1,] with clust_result$X_list[[1]]
-ClustAR <- function(TS_by_node, lag_p, adj_w, ADMM_iter, nu_iter, lambda, gamma, verbose){
+ClustAR <- function(TS_by_node, lag_p, adj_w, ADMM_iter, lambda, gamma, verbose){
 
   ar_X_Y = get_ar_X_Y(TS_by_node, lag_p)
   graph_info = get_graph_info(adj_w)
 
-  output <- GraphClustAR_cpp(ar_X_Y$X_list, ar_X_Y$Y_list,
-                   graph_info$edge_list,graph_info$ node_degree,
-                   ADMM_iter, nu_iter, lambda, gamma, lag_p, verbose)
+  output <- GraphClustAR_cpp(ar_X_Y$X_list, ar_X_Y$Y_list, graph_info$edge_list, graph_info$node_degree,
+                             ADMM_iter, lambda, gamma, lag_p, verbose)
 
   return(output)
 }

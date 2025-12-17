@@ -14,7 +14,7 @@ get_ar_X_Y(TS_by_node, lag_p)
 \value{
 A list with two elements:
 \describe{
-\item{X_list}{List of length N; \code{X_list[[i]]} is (n - p) x p design matrix for node i.}
+\item{X_list}{List of length N; \code{X_list[[i]]} is (n - p) x d design matrix for node i.}
 \item{Y_list}{List of length N; \code{Y_list[[i]]} is length (n - p) response vector for node i.}
 }
 }

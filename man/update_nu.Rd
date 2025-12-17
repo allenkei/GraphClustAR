@@ -4,23 +4,21 @@
 \alias{update_nu}
 \title{Update nu}
 \usage{
-update_nu(phi, theta, edge_list, lambda, gamma, nu_iter)
+update_nu(phi, theta, edge_list, lambda, gamma)
 }
 \arguments{
-\item{phi}{N by p matrix of node parameters (one row per node).}
+\item{phi}{N by d matrix of node parameters (one row per node).}
 
-\item{theta}{E by p matrix of scaled dual variables.}
+\item{theta}{E by d matrix of scaled dual variables.}
 
 \item{edge_list}{E by 3 matrix. Each row e is (i, j, w_ij)}
 
 \item{lambda}{GFL penalty parameter.}
 
 \item{gamma}{penalty parameter for augmentation term.}
-
-\item{nu_iter}{nu iteration}
 }
 \value{
-Updated nu matrix of size E by p.
+Updated nu matrix of size E by d.
 }
 \description{
 ADMM update for nu using group soft-thresholding.

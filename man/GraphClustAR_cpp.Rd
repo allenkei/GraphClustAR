@@ -10,7 +10,6 @@ GraphClustAR_cpp(
   edge_list,
   node_degree,
   ADMM_iter,
-  nu_iter,
   lambda,
   gamma,
   lag_p,
@@ -27,8 +26,6 @@ GraphClustAR_cpp(
 \item{node_degree}{Numeric vector of length N. This is |B(i)| for each i.}
 
 \item{ADMM_iter}{ADMM iteration}
-
-\item{nu_iter}{nu iteration}
 
 \item{lambda}{GFL penalty parameter.}
 
