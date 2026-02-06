@@ -24,13 +24,13 @@
 #' TS_by_node[, 1] <- x_init
 #' eps <- matrix(rnorm(N * (n-1), 0, 1), nrow = N, ncol = n-1)
 #' for (t in 2:n)  TS_by_node[,t] <- mu + phi * (TS_by_node[,t-1] - mu) + eps[,t-1] # AR(1)
-#' ar_X_Y <- get_ar_X_Y(TS_by_node, lag_p=4)
+#' ar_X_Y <- get_ar_X_Y(TS_by_node, lag_p=4, intercept=FALSE)
 #' TS_by_node[1,1:10]         # first 10 time points for node 1
 #' ar_X_Y$X_list[[1]][1:6,]   # design matrix with lag_p
 #' ar_X_Y$Y_list[[1]][1:6]    # response at lag_p + 1
 #' @export
-get_ar_X_Y <- function(TS_by_node, lag_p) {
-    .Call(`_GraphClustAR_get_ar_X_Y`, TS_by_node, lag_p)
+get_ar_X_Y <- function(TS_by_node, lag_p, intercept) {
+    .Call(`_GraphClustAR_get_ar_X_Y`, TS_by_node, lag_p, intercept)
 }
 
 #' Get graph information
@@ -70,8 +70,8 @@ get_graph_info <- function(adj_w) {
 #'
 #' @return An N x d matrix with the updated phi.
 #' @export
-update_phi <- function(X_list, Y_list, phi, nu, theta, edge_list, node_degree, gamma) {
-    .Call(`_GraphClustAR_update_phi`, X_list, Y_list, phi, nu, theta, edge_list, node_degree, gamma)
+update_theta <- function(X_list, Y_list, theta, nu, eta, edge_list, node_degree, GD_iter, lr, gamma) {
+    .Call(`_GraphClustAR_update_theta`, X_list, Y_list, theta, nu, eta, edge_list, node_degree, GD_iter, lr, gamma)
 }
 
 #' Update nu
@@ -87,8 +87,8 @@ update_phi <- function(X_list, Y_list, phi, nu, theta, edge_list, node_degree, g
 #'
 #' @return Updated nu matrix of size E by d.
 #' @export
-update_nu <- function(phi, theta, edge_list, lambda, gamma) {
-    .Call(`_GraphClustAR_update_nu`, phi, theta, edge_list, lambda, gamma)
+update_nu <- function(theta, eta, edge_list, lambda, gamma) {
+    .Call(`_GraphClustAR_update_nu`, theta, eta, edge_list, lambda, gamma)
 }
 
 #' Update theta
@@ -103,8 +103,8 @@ update_nu <- function(phi, theta, edge_list, lambda, gamma) {
 #'
 #' @return Updated nu matrix of size E by p.
 #' @export
-update_theta <- function(phi, nu, theta, edge_list) {
-    .Call(`_GraphClustAR_update_theta`, phi, nu, theta, edge_list)
+update_eta <- function(theta, nu, eta, edge_list) {
+    .Call(`_GraphClustAR_update_eta`, theta, nu, eta, edge_list)
 }
 
 #' ADMM for GraphClustAR
@@ -124,7 +124,132 @@ update_theta <- function(phi, nu, theta, edge_list) {
 #'
 #' @return An N x d matrix with the updated phi.
 #' @export
-GraphClustAR_cpp <- function(X_list, Y_list, edge_list, node_degree, ADMM_iter, lambda, gamma, lag_p, verbose) {
-    .Call(`_GraphClustAR_GraphClustAR_cpp`, X_list, Y_list, edge_list, node_degree, ADMM_iter, lambda, gamma, lag_p, verbose)
+GraphClustAR1_cpp <- function(X_list, Y_list, edge_list, node_degree, ADMM_iter, lambda, gamma, GD_iter, lr, update_gamma, lag_p, verbose) {
+    .Call(`_GraphClustAR_GraphClustAR1_cpp`, X_list, Y_list, edge_list, node_degree, ADMM_iter, lambda, gamma, GD_iter, lr, update_gamma, lag_p, verbose)
+}
+
+#' Build AR(p) design matrices
+#'
+#' Build AR design matrices given time series data for each node.
+#'
+#' @param TS_by_node Numeric matrix of size N x n. Each row is the time series for a node.
+#' @param lag_p Integer lag p for the AR(p) model.
+#' @param intercept TRUE or FALSE to include intercept
+#'
+#' @return A list with two elements:
+#' \describe{
+#'   \item{X_list}{List of length N; \code{X_list[[i]]} is (n - p) x d design matrix for node i.}
+#'   \item{Y_list}{List of length N; \code{Y_list[[i]]} is length (n - p) response vector for node i.}
+#' }
+#' @examples
+#' N = 30 # nodes
+#' n = 100 # time points
+#' mu = 0
+#' sigma = 1
+#' phi = 0.8 # AR parameter
+#' x_init <- rnorm(N, mean = mu, sd = sigma / sqrt(1 - phi^2))
+#' TS_by_node <- matrix(0, nrow = N, ncol = n)
+#' TS_by_node[, 1] <- x_init
+#' eps <- matrix(rnorm(N * (n-1), 0, 1), nrow = N, ncol = n-1)
+#' for (t in 2:n)  TS_by_node[,t] <- mu + phi * (TS_by_node[,t-1] - mu) + eps[,t-1] # AR(1)
+#' ar_X_Y <- get_ar_X_Y(TS_by_node, lag_p=4, intercept=FALSE)
+#' TS_by_node[1,1:10]         # first 10 time points for node 1
+#' ar_X_Y$X_list[[1]][1:6,]   # design matrix with lag_p
+#' ar_X_Y$Y_list[[1]][1:6]    # response at lag_p + 1
+#' @export
+get_ar_X_Y_future <- function(TS_by_node, lag_p, intercept) {
+    .Call(`_GraphClustAR_get_ar_X_Y_future`, TS_by_node, lag_p, intercept)
+}
+
+#' Update phi of AR(1)
+#'
+#' ADMM update for phi of AR(1).
+#' This function will not be export in the final version.
+#'
+#' @param X_list List of length N; each \code{X_list[[i]]} is (n-p x d) design matrix X_i.
+#' @param Y_list List of length N; each \code{Y_list[[i]]} is length n-p response vector Y_i.
+#' @param mu N x d matrix of node parameters.
+#'
+#' @return An N x d matrix with the updated phi.
+#' @export
+update_phi_AR1 <- function(X_list, Y_list, mu) {
+    .Call(`_GraphClustAR_update_phi_AR1`, X_list, Y_list, mu)
+}
+
+#' Update mu of AR(1)
+#'
+#' ADMM update for mu using edge-wise neighbor aggregation.
+#' This function will not be export in the final version.
+#'
+#' @param X_list List of length N; each \code{X_list[[i]]} is (n-p x d) design matrix X_i.
+#' @param Y_list List of length N; each \code{Y_list[[i]]} is length n-p response vector Y_i.
+#' @param phi N vector of node parameters.
+#' @param nu Edge-wise auxiliary variables, E vector.
+#' @param theta Edge-wise scaled dual variables, E vector.
+#' @param edge_list edge list (E by 3)
+#' @param node_degree Numeric vector of length N. This is |B(i)| for each i.
+#' @param gamma penalty for the augmentation term
+#' @param T_length length of nodal time series
+#'
+#' @return An N vector with the updated mu.
+#' @export
+update_mu_AR1 <- function(X_list, Y_list, phi, mu, nu, theta, edge_list, node_degree, gamma, T_length) {
+    .Call(`_GraphClustAR_update_mu_AR1`, X_list, Y_list, phi, mu, nu, theta, edge_list, node_degree, gamma, T_length)
+}
+
+#' Update nu of AR(1)
+#'
+#' ADMM update for mu using edge-wise neighbor aggregation.
+#' This function will not be export in the final version.
+#'
+#' @param mu N vector of node parameters.
+#' @param theta Edge-wise scaled dual variables, E vector.
+#' @param edge_list edge list (E by 3)
+#' @param node_degree Numeric vector of length N. This is |B(i)| for each i.
+#' @param lambda penalty parameter
+#' @param gamma penalty for the augmentation term
+#'
+#' @return An N vector with the updated mu.
+#' @export
+update_nu_AR1 <- function(mu, theta, edge_list, lambda, gamma) {
+    .Call(`_GraphClustAR_update_nu_AR1`, mu, theta, edge_list, lambda, gamma)
+}
+
+#' Update theta of AR(1)
+#'
+#' ADMM update for theta
+#' This function will not be export in the final version.
+#'
+#' @param phi N vector of node parameters.
+#' @param nu E vector of auxiliary variables.
+#' @param theta E vector of scaled dual variables.
+#' @param edge_list E by 3 matrix. Each row e is (i, j, w_ij)
+#'
+#' @return Updated nu matrix of size E by p.
+#' @export
+update_theta_AR1 <- function(mu, nu, theta, edge_list) {
+    .Call(`_GraphClustAR_update_theta_AR1`, mu, nu, theta, edge_list)
+}
+
+#' ADMM for GraphClustAR
+#'
+#' ADMM for GraphClustAR (cpp version)
+#' This function will not be export in the final version.
+#'
+#' @param X_list List of length N; each \code{X_list[[i]]} is (n-p x p) design matrix X_i.
+#' @param Y_list List of length N; each \code{Y_list[[i]]} is length n-p response vector Y_i.
+#' @param edge_list edge list (E by 3)
+#' @param node_degree Numeric vector of length N. This is |B(i)| for each i.
+#' @param ADMM_iter ADMM iteration
+#' @param T_length length of nodal time series
+#' @param lambda GFL penalty parameter.
+#' @param gamma penalty for the augmentation term.
+#' @param update_gamma If TRUE, gamma is updated with a schedule
+#' @param verbose If TRUE, print info during learning.
+#'
+#' @return An N x d matrix with the updated phi.
+#' @export
+GraphClust_AR1_cpp_deprecate <- function(X_list, Y_list, edge_list, node_degree, ADMM_iter, T_length, lambda, gamma, update_gamma, verbose) {
+    .Call(`_GraphClustAR_GraphClust_AR1_cpp_deprecate`, X_list, Y_list, edge_list, node_degree, ADMM_iter, T_length, lambda, gamma, update_gamma, verbose)
 }
 
