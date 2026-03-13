@@ -2,42 +2,23 @@
 % Please edit documentation in R/RcppExports.R
 \name{update_theta}
 \alias{update_theta}
-\title{Update phi}
+\title{Update theta}
 \usage{
-update_theta(
-  X_list,
-  Y_list,
-  theta,
-  nu,
-  eta,
-  edge_list,
-  node_degree,
-  GD_iter,
-  lr,
-  gamma
-)
+update_theta(phi, nu, theta, edge_list)
 }
 \arguments{
-\item{X_list}{List of length N; each \code{X_list[[i]]} is (n-p x d) design matrix X_i.}
+\item{phi}{N by d matrix of node parameters.}
 
-\item{Y_list}{List of length N; each \code{Y_list[[i]]} is length n-p response vector Y_i.}
+\item{nu}{E by d matrix of auxiliary variables.}
 
-\item{theta}{Edge-wise scaled dual variables, E x d matrix.}
+\item{theta}{E by d matrix of scaled dual variables.}
 
-\item{nu}{Edge-wise auxiliary variables, E x d matrix.}
-
-\item{edge_list}{edge list (E by 3)}
-
-\item{node_degree}{Numeric vector of length N. This is |B(i)| for each i.}
-
-\item{gamma}{penalty for the augmentation term}
-
-\item{phi}{N x d matrix of node parameters.}
+\item{edge_list}{E by 3 matrix. Each row e is (i, j, w_ij)}
 }
 \value{
-An N x d matrix with the updated phi.
+Updated nu matrix of size E by p.
 }
 \description{
-ADMM update for phi using edge-wise neighbor aggregation.
+ADMM update for theta
 This function will not be export in the final version.
 }

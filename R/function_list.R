@@ -27,14 +27,14 @@ NULL
 #' mu = 0
 #' sigma = 1
 #' phi = 0.8 # AR parameter
-ClustAR1 <- function(TS_by_node, adj_w, ADMM_iter, GD_iter, lr, lambda, gamma, update_gamma, verbose){
+ClustARp <- function(TS_by_node, adj_w, lag_p, ADMM_iter, lambda, gamma, update_gamma, verbose){
 
   n <- ncol(TS_by_node)
-  ar_X_Y <- get_ar_X_Y(TS_by_node, lag_p=1, intercept=FALSE)
+  ar_X_Y <- get_ar_X_Y(TS_by_node, lag_p)
   graph_info <- get_graph_info(adj_w)
 
-  output <- GraphClustAR1_cpp(ar_X_Y$X_list, ar_X_Y$Y_list, graph_info$edge_list, graph_info$node_degree,
-                             ADMM_iter, lambda, gamma, GD_iter, lr, update_gamma, lag_p=1, verbose)
+  output <- GraphClustARp_cpp(ar_X_Y$X_list, ar_X_Y$Y_list, graph_info$edge_list, graph_info$node_degree,
+                             lag_p, ADMM_iter, lambda, gamma, update_gamma, verbose)
 
   return(output)
 }

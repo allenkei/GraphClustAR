@@ -4,7 +4,7 @@
 \alias{get_ar_X_Y}
 \title{Build AR(p) design matrices}
 \usage{
-get_ar_X_Y(TS_by_node, lag_p, intercept)
+get_ar_X_Y(TS_by_node, lag_p)
 }
 \arguments{
 \item{TS_by_node}{Numeric matrix of size N x n. Each row is the time series for a node.}
