@@ -2,6 +2,9 @@
 
 export(ClustARp)
 export(GraphClustARp_cpp)
+export(cal_ar_BIC)
+export(gen_ar1_by_cluster)
+export(gen_weighted_block_graph)
 export(get_ar_X_Y)
 export(get_graph_info)
 export(update_nu)

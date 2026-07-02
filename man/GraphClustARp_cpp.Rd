@@ -10,6 +10,7 @@ GraphClustARp_cpp(
   edge_list,
   node_degree,
   lag_p,
+  ts_length,
   ADMM_iter,
   lambda,
   gamma,
@@ -28,11 +29,15 @@ GraphClustARp_cpp(
 
 \item{lag_p}{Integer lag p for the AR(p) model.}
 
-\item{ADMM_iter}{ADMM iteration}
+\item{ts_length}{length of the time series for each node.}
+
+\item{ADMM_iter}{ADMM iteration.}
 
 \item{lambda}{GFL penalty parameter.}
 
 \item{gamma}{penalty for the augmentation term.}
+
+\item{update_gamma}{If TRUE, gamma is updated with schedule.}
 
 \item{verbose}{If TRUE, print info during learning.}
 }

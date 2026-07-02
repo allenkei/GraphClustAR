@@ -4,7 +4,17 @@
 \alias{update_phi}
 \title{Update phi}
 \usage{
-update_phi(X_list, Y_list, phi, nu, theta, edge_list, node_degree, gamma)
+update_phi(
+  X_list,
+  Y_list,
+  phi,
+  nu,
+  theta,
+  edge_list,
+  node_degree,
+  ts_length,
+  gamma
+)
 }
 \arguments{
 \item{X_list}{List of length N; each \code{X_list[[i]]} is (n-p x d) design matrix X_i.}
@@ -20,6 +30,8 @@ update_phi(X_list, Y_list, phi, nu, theta, edge_list, node_degree, gamma)
 \item{edge_list}{edge list (E by 3)}
 
 \item{node_degree}{Numeric vector of length N. This is |B(i)| for each i.}
+
+\item{ts_length}{length of the time series for each node.}
 
 \item{gamma}{penalty for the augmentation term}
 }

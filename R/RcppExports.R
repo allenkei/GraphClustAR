@@ -66,12 +66,13 @@ get_graph_info <- function(adj_w) {
 #' @param theta Edge-wise scaled dual variables, E x d matrix.
 #' @param edge_list edge list (E by 3)
 #' @param node_degree Numeric vector of length N. This is |B(i)| for each i.
+#' @param ts_length length of the time series for each node.
 #' @param gamma penalty for the augmentation term
 #'
 #' @return An N x d matrix with the updated phi.
 #' @export
-update_phi <- function(X_list, Y_list, phi, nu, theta, edge_list, node_degree, gamma) {
-    .Call(`_GraphClustAR_update_phi`, X_list, Y_list, phi, nu, theta, edge_list, node_degree, gamma)
+update_phi <- function(X_list, Y_list, phi, nu, theta, edge_list, node_degree, ts_length, gamma) {
+    .Call(`_GraphClustAR_update_phi`, X_list, Y_list, phi, nu, theta, edge_list, node_degree, ts_length, gamma)
 }
 
 #' Update nu
@@ -116,15 +117,44 @@ update_theta <- function(phi, nu, theta, edge_list) {
 #' @param Y_list List of length N; each \code{Y_list[[i]]} is length n-p response vector Y_i.
 #' @param edge_list edge list (E by 3)
 #' @param node_degree Numeric vector of length N. This is |B(i)| for each i.
-#' @param ADMM_iter ADMM iteration
+#' @param lag_p Integer lag p for the AR(p) model.
+#' @param ts_length length of the time series for each node.
+#' @param ADMM_iter ADMM iteration.
 #' @param lambda GFL penalty parameter.
 #' @param gamma penalty for the augmentation term.
-#' @param lag_p Integer lag p for the AR(p) model.
+#' @param update_gamma If TRUE, gamma is updated with schedule.
 #' @param verbose If TRUE, print info during learning.
 #'
 #' @return An N x d matrix with the updated phi.
 #' @export
-GraphClustARp_cpp <- function(X_list, Y_list, edge_list, node_degree, lag_p, ADMM_iter, lambda, gamma, update_gamma, verbose) {
-    .Call(`_GraphClustAR_GraphClustARp_cpp`, X_list, Y_list, edge_list, node_degree, lag_p, ADMM_iter, lambda, gamma, update_gamma, verbose)
+GraphClustARp_cpp <- function(X_list, Y_list, edge_list, node_degree, lag_p, ts_length, ADMM_iter, lambda, gamma, update_gamma, verbose) {
+    .Call(`_GraphClustAR_GraphClustARp_cpp`, X_list, Y_list, edge_list, node_degree, lag_p, ts_length, ADMM_iter, lambda, gamma, update_gamma, verbose)
+}
+
+#' Calculate BIC for GraphClustAR AR model
+#'
+#' Calculates the Bayesian information criterion (BIC) for fitted nodal
+#' AR parameters given AR design matrices, responses, and the detected
+#' number of clusters.
+#'
+#' @param X_list List of length N. Each element is the AR design matrix
+#'   for one node, with dimension (n - p) x (p + 1).
+#' @param Y_list List of length N. Each element is the response vector
+#'   for one node, with length (n - p).
+#' @param phi_hat Numeric matrix of size N x (p + 1). Row i contains the
+#'   fitted AR parameter for node i.
+#' @param K_hat Integer. Number of detected clusters.
+#' @param n_ts Integer. Original time-series length n.
+#'
+#' @return A list with elements:
+#' \describe{
+#'   \item{BIC}{The BIC value.}
+#'   \item{sigma2_hat}{Estimated nodal variances.}
+#'   \item{RSS}{Residual sum of squares for each node.}
+#' }
+#'
+#' @export
+cal_ar_BIC <- function(X_list, Y_list, phi_hat, K_hat, n_ts) {
+    .Call(`_GraphClustAR_cal_ar_BIC`, X_list, Y_list, phi_hat, K_hat, n_ts)
 }
 

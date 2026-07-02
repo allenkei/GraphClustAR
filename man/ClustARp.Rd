@@ -37,9 +37,13 @@ A list
 This function clusters nodes.
 }
 \examples{
-N = 30 # nodes
-n = 100 # time points
-mu = 0
-sigma = 1
-phi = 0.8 # AR parameter
+ts_data <- gen_ar1_by_cluster(cluster_sizes = c(50, 50, 50), n = 100)
+graph_data <- gen_weighted_block_graph(cluster_sizes = c(50, 50, 50))
+TS_by_node <- ts_data$TS_by_node
+adj_w <- graph_data$weights
+labels <- ts_data$labels
+result <- ClustARp(TS_by_node, adj_w, lag_p=1, ADMM_iter=200, lambda=1, gamma=1,
+                   update_gamma=FALSE, verbose=TRUE)
+plot(result$phi, col=labels)
+
 }

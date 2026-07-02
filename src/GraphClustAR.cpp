@@ -156,6 +156,7 @@ Rcpp::List get_graph_info(const arma::mat &adj_w) {
 //' @param theta Edge-wise scaled dual variables, E x d matrix.
 //' @param edge_list edge list (E by 3)
 //' @param node_degree Numeric vector of length N. This is |B(i)| for each i.
+//' @param ts_length length of the time series for each node.
 //' @param gamma penalty for the augmentation term
 //'
 //' @return An N x d matrix with the updated phi.
@@ -167,6 +168,7 @@ arma::mat update_phi(const Rcpp::List &X_list, const Rcpp::List &Y_list,
                     arma::mat  &theta,        // E by d
                     const arma::mat  &edge_list,   // E by 3
                     const arma::vec  &node_degree, // N
+                    const double ts_length, //n
                     const double gamma) {
   int N = phi.n_rows;
   int d_dim = phi.n_cols;
@@ -190,12 +192,12 @@ arma::mat update_phi(const Rcpp::List &X_list, const Rcpp::List &Y_list,
     arma::mat Xi = Rcpp::as<arma::mat>(X_list[i]);  // (n-p) by d_dim
     arma::vec Yi = Rcpp::as<arma::vec>(Y_list[i]);  // n-p
 
-    // first_term = X_i^T X_i + gamma * |B(i)| I
-    arma::mat first_term = Xi.t() * Xi;
+    // first_term = (1/n) X_i^T X_i + gamma * |B(i)| I
+    arma::mat first_term = (1/ts_length) * Xi.t() * Xi;
     first_term.diag() += gamma * node_degree[i];
 
-    // second_term = X_i^T Y_i + gamma * neighbor_sum_i
-    arma::vec second_term = Xi.t() * Yi + gamma * neighbor_sum.row(i).t();
+    // second_term = (1/n) X_i^T Y_i + gamma * neighbor_sum_i
+    arma::vec second_term = (1/ts_length) * Xi.t() * Yi + gamma * neighbor_sum.row(i).t();
 
     // Solve for phi_i
     arma::vec phi_i = arma::solve(first_term, second_term);
@@ -302,10 +304,12 @@ arma::mat update_theta(const arma::mat &phi,         // N by d
 //' @param Y_list List of length N; each \code{Y_list[[i]]} is length n-p response vector Y_i.
 //' @param edge_list edge list (E by 3)
 //' @param node_degree Numeric vector of length N. This is |B(i)| for each i.
-//' @param ADMM_iter ADMM iteration
+//' @param lag_p Integer lag p for the AR(p) model.
+//' @param ts_length length of the time series for each node.
+//' @param ADMM_iter ADMM iteration.
 //' @param lambda GFL penalty parameter.
 //' @param gamma penalty for the augmentation term.
-//' @param lag_p Integer lag p for the AR(p) model.
+//' @param update_gamma If TRUE, gamma is updated with schedule.
 //' @param verbose If TRUE, print info during learning.
 //'
 //' @return An N x d matrix with the updated phi.
@@ -314,7 +318,7 @@ arma::mat update_theta(const arma::mat &phi,         // N by d
 Rcpp::List GraphClustARp_cpp(const Rcpp::List &X_list, const Rcpp::List &Y_list,
                            const arma::mat  &edge_list,   // E by 3
                            const arma::vec  &node_degree, // N
-                           const int lag_p, const int ADMM_iter,
+                           const int lag_p, const double ts_length, const int ADMM_iter,
                            const double lambda, double gamma,
                            bool update_gamma, bool verbose) {
 
@@ -333,7 +337,7 @@ Rcpp::List GraphClustARp_cpp(const Rcpp::List &X_list, const Rcpp::List &Y_list,
     if(verbose){Rcout << "ADMM iter = " << iter+1 << "\n";}
 
     phi_old = phi;
-    phi = update_phi(X_list, Y_list, phi, nu, theta, edge_list, node_degree, gamma);
+    phi = update_phi(X_list, Y_list, phi, nu, theta, edge_list, node_degree, ts_length, gamma);
 
     //if(verbose){Rcout << "phi = " << phi << "\n";}
 
@@ -384,6 +388,73 @@ Rcpp::List GraphClustARp_cpp(const Rcpp::List &X_list, const Rcpp::List &Y_list,
 }
 
 
+
+//' Calculate BIC for GraphClustAR AR model
+//'
+//' Calculates the Bayesian information criterion (BIC) for fitted nodal
+//' AR parameters given AR design matrices, responses, and the detected
+//' number of clusters.
+//'
+//' @param X_list List of length N. Each element is the AR design matrix
+//'   for one node, with dimension (n - p) x (p + 1).
+//' @param Y_list List of length N. Each element is the response vector
+//'   for one node, with length (n - p).
+//' @param phi_hat Numeric matrix of size N x (p + 1). Row i contains the
+//'   fitted AR parameter for node i.
+//' @param K_hat Integer. Number of detected clusters.
+//' @param n_ts Integer. Original time-series length n.
+//'
+//' @return A list with elements:
+//' \describe{
+//'   \item{BIC}{The BIC value.}
+//'   \item{sigma2_hat}{Estimated nodal variances.}
+//'   \item{RSS}{Residual sum of squares for each node.}
+//' }
+//'
+//' @export
+// [[Rcpp::export]]
+Rcpp::List cal_ar_BIC( const Rcpp::List X_list, const Rcpp::List Y_list, const arma::mat phi_hat,
+  const int K_hat, const int n_ts) {
+
+  int N = X_list.size();
+  int d_dim = phi_hat.n_cols;  // p + 1
+
+  arma::vec sigma2_hat(N);
+  arma::vec RSS(N);
+
+  double bic = 0.0;
+  const double eps = 1e-12;
+
+  for (int i = 0; i < N; ++i) {
+    arma::mat Xi = Rcpp::as<arma::mat>(X_list[i]);
+    arma::vec Yi = Rcpp::as<arma::vec>(Y_list[i]);
+
+    arma::vec phi_i = phi_hat.row(i).t();
+    arma::vec resid = Yi - Xi * phi_i;
+
+    double rss_i = arma::dot(resid, resid);
+    double sigma2_i = rss_i / static_cast<double>(n_ts);
+
+    // Avoid log(0) if residual is numerically zero.
+    sigma2_i = std::max(sigma2_i, eps);
+
+    RSS(i) = rss_i;
+    sigma2_hat(i) = sigma2_i;
+
+    bic += -2.0 * ( 0.5 * n_ts * std::log(2.0 * M_PI * sigma2_i) + rss_i / (2.0 * sigma2_i) );
+
+  }
+
+  bic += std::log(static_cast<double>(n_ts) * N) * static_cast<double>(d_dim * K_hat);
+
+  return Rcpp::List::create(
+    Rcpp::Named("BIC") = bic
+    //Rcpp::Named("sigma2_hat") = sigma2_hat,
+    //Rcpp::Named("RSS") = RSS
+  );
+
+
+}
 
 
 
