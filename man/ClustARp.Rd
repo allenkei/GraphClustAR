@@ -8,11 +8,12 @@ ClustARp(
   TS_by_node,
   adj_w,
   lag_p,
+  num_clust_list,
+  lambda_list,
   ADMM_iter,
-  lambda,
-  gamma,
-  update_gamma,
-  verbose
+  phi_tol = 0.001,
+  verbose = F,
+  update_gamma = F
 )
 }
 \arguments{
@@ -20,15 +21,17 @@ ClustARp(
 
 \item{adj_w}{Adjacency matrix with non-negative weights}
 
+\item{num_clust_list}{vector containing list of cluster number}
+
+\item{lambda_list}{vector containing list of GFL penalty}
+
 \item{ADMM_iter}{ADMM iteration}
 
-\item{lambda}{GFL penalty}
-
-\item{gamma}{penalty for the augmentation term}
-
-\item{update_gamma}{If TRUE, gamma is updated with a schedule}
+\item{phi_tol}{ADMM stopping criteria}
 
 \item{verbose}{If TRUE, print info during parameter learning}
+
+\item{update_gamma}{If TRUE, gamma is updated with a schedule}
 }
 \value{
 A list
@@ -37,13 +40,15 @@ A list
 This function clusters nodes.
 }
 \examples{
-ts_data <- gen_ar1_by_cluster(cluster_sizes = c(50, 50, 50), n = 100)
-graph_data <- gen_weighted_block_graph(cluster_sizes = c(50, 50, 50))
+ts_data <- gen_ar1_by_cluster(cluster_sizes = c(50, 50, 50), n = 100, seed=123)
+graph_data <- gen_weighted_block_graph(cluster_sizes = c(50, 50, 50), seed=123)
 TS_by_node <- ts_data$TS_by_node
-adj_w <- graph_data$weights
-labels <- ts_data$labels
-result <- ClustARp(TS_by_node, adj_w, lag_p=1, ADMM_iter=200, lambda=1, gamma=1,
-                   update_gamma=FALSE, verbose=TRUE)
-plot(result$phi, col=labels)
+adj_w <- graph_data$adj_w
+result <- ClustARp(TS_by_node, adj_w, lag_p=1, num_clust_list=2:7,
+                   lambda_list=c(0.1,0.25,0.5,0.75,1), ADMM_iter=100)
+result$lambda
+result$K
+result$cluster
+plot(result$ADMM_output$phi, col=result$cluster)
 
 }

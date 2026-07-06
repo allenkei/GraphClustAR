@@ -2,18 +2,45 @@
 % Please edit documentation in R/function_list.R
 \name{gen_ar1_by_cluster}
 \alias{gen_ar1_by_cluster}
-\title{Generate nodal AR(1) time series}
+\title{Generate clustered AR(1) time series}
 \usage{
 gen_ar1_by_cluster(
   cluster_sizes = c(50, 50, 50),
   n = 100,
   mu_vec = c(0, 2, -2),
-  phi_vec = c(0.2, 0.6, -0.4),
+  phi_vec = c(0.1, 0.7, -0.5),
   sigma_vec = c(0.5, 0.5, 0.5),
   stationary_init = TRUE,
   seed = NULL
 )
 }
+\arguments{
+\item{cluster_sizes}{Integer vector of cluster sizes.}
+
+\item{n}{Length of each time series.}
+
+\item{mu_vec}{Numeric vector of cluster means.}
+
+\item{phi_vec}{Numeric vector of cluster AR(1) coefficients.}
+
+\item{sigma_vec}{Numeric vector of cluster innovation standard deviations.}
+
+\item{stationary_init}{Logical; initialize from the stationary distribution when possible.}
+
+\item{seed}{Optional random seed.}
+}
+\value{
+A list containing:
+\describe{
+\item{TS_by_node}{Numeric matrix of size \code{N x n}; each row is a node's time series.}
+\item{labels}{Cluster label for each node.}
+}
+}
 \description{
-Generate nodal AR(1) time series
+Generate nodal AR(1) time series with cluster-specific mean,
+autoregressive coefficient, and innovation variance.
+}
+\examples{
+ts_data <- gen_ar1_by_cluster(cluster_sizes = c(50, 50, 50), n = 100)
+
 }

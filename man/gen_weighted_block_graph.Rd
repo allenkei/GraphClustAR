@@ -2,7 +2,7 @@
 % Please edit documentation in R/function_list.R
 \name{gen_weighted_block_graph}
 \alias{gen_weighted_block_graph}
-\title{Generate weighted block graph with 3 or more clusters}
+\title{Generate a weighted block graph}
 \usage{
 gen_weighted_block_graph(
   cluster_sizes = c(50, 50, 50),
@@ -13,6 +13,30 @@ gen_weighted_block_graph(
   seed = NULL
 )
 }
+\arguments{
+\item{cluster_sizes}{Integer vector of cluster sizes.}
+
+\item{p_in}{Probability of an edge within a cluster.}
+
+\item{p_out}{Probability of an edge between clusters.}
+
+\item{weight_in_range}{Length-2 numeric vector giving the range of within-cluster edge weights.}
+
+\item{weight_out_range}{Length-2 numeric vector giving the range of between-cluster edge weights.}
+
+\item{seed}{Optional random seed.}
+}
+\value{
+A list containing:
+\describe{
+\item{adj_w}{Weighted adjacency matrix.}
+\item{labels}{Cluster label for each node.}
+}
+}
 \description{
-Generate weighted block graph with 3 or more clusters
+Generate a weighted undirected graph with cluster-specific edge probabilities and edge weights.
+}
+\examples{
+graph_data <- gen_weighted_block_graph(cluster_sizes = c(50, 50, 50))
+
 }

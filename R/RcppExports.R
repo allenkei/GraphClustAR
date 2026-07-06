@@ -122,36 +122,40 @@ update_theta <- function(phi, nu, theta, edge_list) {
 #' @param ADMM_iter ADMM iteration.
 #' @param lambda GFL penalty parameter.
 #' @param gamma penalty for the augmentation term.
+#' @param phi_tol ADMM stopping criteria based on phi.
 #' @param update_gamma If TRUE, gamma is updated with schedule.
 #' @param verbose If TRUE, print info during learning.
 #'
 #' @return An N x d matrix with the updated phi.
 #' @export
-GraphClustARp_cpp <- function(X_list, Y_list, edge_list, node_degree, lag_p, ts_length, ADMM_iter, lambda, gamma, update_gamma, verbose) {
-    .Call(`_GraphClustAR_GraphClustARp_cpp`, X_list, Y_list, edge_list, node_degree, lag_p, ts_length, ADMM_iter, lambda, gamma, update_gamma, verbose)
+GraphClustARp_cpp <- function(X_list, Y_list, edge_list, node_degree, lag_p, ts_length, ADMM_iter, lambda, gamma, phi_tol, update_gamma, verbose) {
+    .Call(`_GraphClustAR_GraphClustARp_cpp`, X_list, Y_list, edge_list, node_degree, lag_p, ts_length, ADMM_iter, lambda, gamma, phi_tol, update_gamma, verbose)
+}
+
+#' Calculate log-likelihood for AR(p) model
+#'
+#' @param X_list List of AR design matrices.
+#' @param Y_list List of response vectors.
+#' @param phi_hat Estimated AR coefficients (N x (p+1)).
+#' @param n_ts Time series length.
+#'
+#' @return log-likelihood.
+#' @export
+cal_ar_loglik <- function(X_list, Y_list, phi_hat, n_ts) {
+    .Call(`_GraphClustAR_cal_ar_loglik`, X_list, Y_list, phi_hat, n_ts)
 }
 
 #' Calculate BIC for GraphClustAR AR model
 #'
-#' Calculates the Bayesian information criterion (BIC) for fitted nodal
-#' AR parameters given AR design matrices, responses, and the detected
-#' number of clusters.
+#' Calculates the Bayesian information criterion (BIC)
 #'
-#' @param X_list List of length N. Each element is the AR design matrix
-#'   for one node, with dimension (n - p) x (p + 1).
-#' @param Y_list List of length N. Each element is the response vector
-#'   for one node, with length (n - p).
-#' @param phi_hat Numeric matrix of size N x (p + 1). Row i contains the
-#'   fitted AR parameter for node i.
+#' @param X_list List of AR design matrices.
+#' @param Y_list List of response vectors.
+#' @param phi_hat Estimated AR coefficients (N x (p+1)).
 #' @param K_hat Integer. Number of detected clusters.
-#' @param n_ts Integer. Original time-series length n.
+#' @param n_ts Time series length.
 #'
-#' @return A list with elements:
-#' \describe{
-#'   \item{BIC}{The BIC value.}
-#'   \item{sigma2_hat}{Estimated nodal variances.}
-#'   \item{RSS}{Residual sum of squares for each node.}
-#' }
+#' @return BIC
 #'
 #' @export
 cal_ar_BIC <- function(X_list, Y_list, phi_hat, K_hat, n_ts) {

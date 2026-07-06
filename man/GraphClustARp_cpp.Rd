@@ -14,6 +14,7 @@ GraphClustARp_cpp(
   ADMM_iter,
   lambda,
   gamma,
+  phi_tol,
   update_gamma,
   verbose
 )
@@ -36,6 +37,8 @@ GraphClustARp_cpp(
 \item{lambda}{GFL penalty parameter.}
 
 \item{gamma}{penalty for the augmentation term.}
+
+\item{phi_tol}{ADMM stopping criteria based on phi.}
 
 \item{update_gamma}{If TRUE, gamma is updated with schedule.}
 

@@ -309,6 +309,7 @@ arma::mat update_theta(const arma::mat &phi,         // N by d
 //' @param ADMM_iter ADMM iteration.
 //' @param lambda GFL penalty parameter.
 //' @param gamma penalty for the augmentation term.
+//' @param phi_tol ADMM stopping criteria based on phi.
 //' @param update_gamma If TRUE, gamma is updated with schedule.
 //' @param verbose If TRUE, print info during learning.
 //'
@@ -319,7 +320,7 @@ Rcpp::List GraphClustARp_cpp(const Rcpp::List &X_list, const Rcpp::List &Y_list,
                            const arma::mat  &edge_list,   // E by 3
                            const arma::vec  &node_degree, // N
                            const int lag_p, const double ts_length, const int ADMM_iter,
-                           const double lambda, double gamma,
+                           const double lambda, double gamma, double phi_tol,
                            bool update_gamma, bool verbose) {
 
 
@@ -351,6 +352,14 @@ Rcpp::List GraphClustARp_cpp(const Rcpp::List &X_list, const Rcpp::List &Y_list,
 
     theta = update_theta(phi, nu, theta, edge_list);
     if(verbose){Rcout << "    theta updated" << "\n";}
+
+
+    double rel_phi_change = arma::norm(phi - phi_old, "fro") / (arma::norm(phi_old, "fro") + 1e-12);
+
+    if (iter >= 5 && rel_phi_change < phi_tol) {
+      Rcpp::Rcout << "*** ADMM converged for lambda = "<< lambda << " ***\n";
+      break;
+    }
 
 
     for (int e = 0; e < E; ++e) {
@@ -388,71 +397,64 @@ Rcpp::List GraphClustARp_cpp(const Rcpp::List &X_list, const Rcpp::List &Y_list,
 }
 
 
-
-//' Calculate BIC for GraphClustAR AR model
+//' Calculate log-likelihood for AR(p) model
 //'
-//' Calculates the Bayesian information criterion (BIC) for fitted nodal
-//' AR parameters given AR design matrices, responses, and the detected
-//' number of clusters.
+//' @param X_list List of AR design matrices.
+//' @param Y_list List of response vectors.
+//' @param phi_hat Estimated AR coefficients (N x (p+1)).
+//' @param n_ts Time series length.
 //'
-//' @param X_list List of length N. Each element is the AR design matrix
-//'   for one node, with dimension (n - p) x (p + 1).
-//' @param Y_list List of length N. Each element is the response vector
-//'   for one node, with length (n - p).
-//' @param phi_hat Numeric matrix of size N x (p + 1). Row i contains the
-//'   fitted AR parameter for node i.
-//' @param K_hat Integer. Number of detected clusters.
-//' @param n_ts Integer. Original time-series length n.
-//'
-//' @return A list with elements:
-//' \describe{
-//'   \item{BIC}{The BIC value.}
-//'   \item{sigma2_hat}{Estimated nodal variances.}
-//'   \item{RSS}{Residual sum of squares for each node.}
-//' }
-//'
+//' @return log-likelihood.
 //' @export
 // [[Rcpp::export]]
-Rcpp::List cal_ar_BIC( const Rcpp::List X_list, const Rcpp::List Y_list, const arma::mat phi_hat,
-  const int K_hat, const int n_ts) {
-
+double cal_ar_loglik(const Rcpp::List X_list, const Rcpp::List Y_list, const arma::mat phi_hat, const int n_ts) {
   int N = X_list.size();
-  int d_dim = phi_hat.n_cols;  // p + 1
-
-  arma::vec sigma2_hat(N);
-  arma::vec RSS(N);
-
-  double bic = 0.0;
   const double eps = 1e-12;
 
-  for (int i = 0; i < N; ++i) {
+  double loglik = 0.0;
+
+  for(int i = 0; i < N; ++i) {
     arma::mat Xi = Rcpp::as<arma::mat>(X_list[i]);
     arma::vec Yi = Rcpp::as<arma::vec>(Y_list[i]);
-
     arma::vec phi_i = phi_hat.row(i).t();
     arma::vec resid = Yi - Xi * phi_i;
 
     double rss_i = arma::dot(resid, resid);
     double sigma2_i = rss_i / static_cast<double>(n_ts);
-
-    // Avoid log(0) if residual is numerically zero.
     sigma2_i = std::max(sigma2_i, eps);
 
-    RSS(i) = rss_i;
-    sigma2_hat(i) = sigma2_i;
-
-    bic += -2.0 * ( 0.5 * n_ts * std::log(2.0 * M_PI * sigma2_i) + rss_i / (2.0 * sigma2_i) );
-
+    loglik += -0.5 * n_ts * std::log(2.0 * M_PI * sigma2_i) - rss_i / (2.0 * sigma2_i);
   }
 
-  bic += std::log(static_cast<double>(n_ts) * N) * static_cast<double>(d_dim * K_hat);
+  return loglik;
+}
 
-  return Rcpp::List::create(
-    Rcpp::Named("BIC") = bic
-    //Rcpp::Named("sigma2_hat") = sigma2_hat,
-    //Rcpp::Named("RSS") = RSS
-  );
 
+
+//' Calculate BIC for GraphClustAR AR model
+//'
+//' Calculates the Bayesian information criterion (BIC)
+//'
+//' @param X_list List of AR design matrices.
+//' @param Y_list List of response vectors.
+//' @param phi_hat Estimated AR coefficients (N x (p+1)).
+//' @param K_hat Integer. Number of detected clusters.
+//' @param n_ts Time series length.
+//'
+//' @return BIC
+//'
+//' @export
+// [[Rcpp::export]]
+double cal_ar_BIC(const Rcpp::List X_list, const Rcpp::List Y_list, const arma::mat phi_hat,
+                  const int K_hat, const int n_ts) {
+
+  int N = X_list.size();
+  int d_dim = phi_hat.n_cols;  // p + 1
+  double loglik = cal_ar_loglik(X_list, Y_list, phi_hat, n_ts);
+
+  double bic = -2.0 * loglik + std::log(static_cast<double>(N * n_ts)) * static_cast<double>(d_dim * K_hat);
+
+  return bic;
 
 }
 
