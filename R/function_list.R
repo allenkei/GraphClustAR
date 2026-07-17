@@ -27,7 +27,7 @@ NULL
 #' graph_data <- gen_weighted_block_graph(cluster_sizes = c(50, 50, 50), seed=123)
 #' TS_by_node <- ts_data$TS_by_node
 #' adj_w <- graph_data$adj_w
-#' result <- ClustARp(TS_by_node, adj_w, lag_p=1, num_clust_list=2:7,
+#' result <- GraphClustARp(TS_by_node, adj_w, lag_p=1, num_clust_list=2:7,
 #'                    lambda_list=c(0.1,0.25,0.5,0.75,1), ADMM_iter=100)
 #' result$lambda
 #' result$K
@@ -35,7 +35,7 @@ NULL
 #' plot(result$ADMM_output$phi, col=result$cluster)
 #'
 #' @export
-ClustARp <- function(TS_by_node, adj_w, lag_p, num_clust_list, lambda_list, ADMM_iter,
+GraphClustARp <- function(TS_by_node, adj_w, lag_p, num_clust_list, lambda_list, ADMM_iter,
                      phi_tol=0.001, verbose=F, update_gamma=F){
 
   ts_length <- ncol(TS_by_node)
@@ -93,7 +93,6 @@ ClustARp <- function(TS_by_node, adj_w, lag_p, num_clust_list, lambda_list, ADMM
   output <- list(
     lambda = lambda_list[best_lambda_idx],
     K = K_selected[best_lambda_idx],
-    phi = phi_list[[best_lambda_idx]],
     cluster = cluster_list[[best_lambda_idx]],
     BIC = BIC[best_lambda_idx],
     ADMM_output = ADMM_output_list[[best_lambda_idx]]
